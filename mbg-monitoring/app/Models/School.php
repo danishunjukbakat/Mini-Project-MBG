@@ -11,4 +11,9 @@ class School extends Model
         'name',
         'address',
     ];
+
+    public function distributions(): HasMany
+    {
+        return $this->hasMany(Distribution::class);
+    }
 }
