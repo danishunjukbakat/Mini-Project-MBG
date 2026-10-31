@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Report extends Model
 {
@@ -29,5 +30,10 @@ class Report extends Model
     public function distribution(): BelongsTo
     {
         return $this->belongsTo(Distribution::class);
+    }
+
+    public function forwardings(): HasMany
+    {
+        return $this->hasMany(ReportForwarding::class);
     }
 }
