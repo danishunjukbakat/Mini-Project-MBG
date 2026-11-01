@@ -14,7 +14,8 @@
     </p>
 
     <form method="POST"
-          action="{{ route('reports.update', $report) }}">
+          action="{{ route('reports.update', $report) }}"
+          enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -39,7 +40,30 @@
                   name="description"
                   rows="6"
                   required>{{ old('description', $report->description) }}</textarea>
+        
+        <h3>Bukti Pendukung</h3>
 
+        @if($report->evidence_path)
+            <p>
+                <a href="{{ route('reports.evidence', $report) }}">
+                    Download Bukti Saat Ini
+                </a>
+            </p>
+        @endif
+
+        <label for="evidence">Ganti File Bukti (Opsional)</label>
+
+        <input
+            type="file"
+            id="evidence"
+            name="evidence"
+            accept=".jpg,.jpeg,.png,.pdf"
+        >
+
+        <small>
+            Kosongkan jika tidak ingin mengganti file.
+            Maksimal 2 MB.
+        </small>
         <button type="submit">Simpan Perubahan</button>
     </form>
 @endsection

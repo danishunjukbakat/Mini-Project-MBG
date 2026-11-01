@@ -34,7 +34,8 @@
             <p>Belum ada distribusi untuk sekolah ini.</p>
         @else
             <form method="POST"
-                  action="{{ route('reports.store') }}">
+                  action="{{ route('reports.store') }}"
+                  enctype="multipart/form-data">
                 @csrf
 
                 <input type="hidden"
@@ -80,6 +81,19 @@
                           rows="6"
                           required>{{ old('description') }}</textarea>
 
+                <label for="evidence">Bukti Pendukung (Opsional)</label>
+
+                <input
+                    type="file"
+                    id="evidence"
+                    name="evidence"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                >
+
+                <small>
+                    Format JPG, JPEG, PNG, atau PDF.
+                    Maksimal 2 MB.
+                </small>
                 <button type="submit">Simpan Laporan</button>
             </form>
         @endif

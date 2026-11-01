@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
@@ -94,6 +96,10 @@ class ReportController extends Controller
             'description' => [
                 'required', 'string', 'min:10', 'max:2000'
             ],
+
+            'evidence' => [
+                'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048',
+            ],
         ]);
 
         $report = new Report();
@@ -113,7 +119,32 @@ class ReportController extends Controller
 
         $report->status = 'submitted';
 
-        $report->save();
+        $newPath = null;
+
+        if ($request->hasFile('evidence')) {
+            $newPath = $request->file('evidence')
+                ->store('report-evidence', 'local');
+
+            if ($newPath === false) {
+                return back()
+                    ->withErrors([
+                        'evidence' => 'Gagal menyimpan file bukti.',
+                    ])
+                    ->withInput();
+            }
+
+            $report->evidence_path = $newPath;
+        }
+
+        try {
+            $report->save();
+        } catch (\Throwable $e) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $e;
+        }
 
         return redirect()
             ->route('reports.show', $report)
@@ -144,6 +175,7 @@ class ReportController extends Controller
     }
 
     // Menyimpan perubahan laporan
+    
     public function update(
         Request $request,
         Report $report
@@ -160,12 +192,70 @@ class ReportController extends Controller
             'description' => [
                 'required', 'string', 'min:10', 'max:2000'
             ],
+            'evidence' => [
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:2048',
+            ],
         ]);
 
-        $report->update($validated);
+        $report->fill([
+            'title' => $validated['title'],
+            'incident_date' => $validated['incident_date'],
+            'description' => $validated['description'],
+        ]);
+
+        $oldPath = $report->evidence_path;
+        $newPath = null;
+
+        if ($request->hasFile('evidence')) {
+            $newPath = $request->file('evidence')
+                ->store('report-evidence', 'local');
+
+            if ($newPath === false) {
+                return back()->withErrors([
+                    'evidence' => 'Gagal menyimpan file bukti.',
+                ]);
+            }
+
+            $report->evidence_path = $newPath;
+        }
+
+        try {
+            $report->save();
+        } catch (\Throwable $e) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $e;
+        }
+
+        // Hapus file lama setelah perubahan berhasil.
+        if ($newPath && $oldPath) {
+            Storage::disk('local')->delete($oldPath);
+        }
 
         return redirect()
             ->route('reports.show', $report)
             ->with('success', 'Laporan berhasil diperbarui.');
     }
+
+    public function downloadEvidence(
+        Report $report
+    ): StreamedResponse {
+        Gate::authorize('view', $report);
+
+        if (
+                !$report->evidence_path ||
+                !Storage::disk('local')->exists($report->evidence_path)
+        ) {
+                abort(404, 'File bukti tidak ditemukan.');
+        }
+
+        return Storage::disk('local')
+            ->download($report->evidence_path);
+    }
+
 }

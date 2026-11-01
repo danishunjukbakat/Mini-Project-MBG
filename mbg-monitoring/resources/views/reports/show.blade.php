@@ -30,4 +30,14 @@
     <a href="{{ route('reports.index') }}">
         Kembali ke Daftar
     </a>
+
+    <h3>Bukti Pendukung</h3>
+
+    @if($report->evidence_path)
+        <a href="{{ route('reports.evidence', $report) }}">
+            Download Bukti Laporan
+        </a>
+    @else
+        <p>Belum ada bukti pendukung.</p>
+    @endif
 @endsection

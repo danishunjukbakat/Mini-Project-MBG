@@ -22,6 +22,10 @@ Route::middleware('guest')->group(function () {
 
 // Route yang membutuhkan login
 Route::middleware('auth')->group(function () {
+    Route::get(
+        '/reports/{report}/evidence',
+        [ReportController::class, 'downloadEvidence']
+    )->name('reports.evidence');
 
     Route::resource('reports', ReportController::class)
         ->except(['destroy']);
