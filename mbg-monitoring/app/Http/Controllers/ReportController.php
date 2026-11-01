@@ -19,12 +19,34 @@ class ReportController extends Controller
     {
         Gate::authorize('viewAny', Report::class);
 
-        $query = Report::with([
-            'reporter',
-            'distribution.school'
-        ])->latest();
+        // 1. Validasi parameter pencarian dan filter
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:150'],
+            'status' => [
+                'nullable',
+                Rule::in([
+                    'submitted',
+                    'under_review',
+                    'needs_forwarding',
+                    'forwarded',
+                    'closed',
+                ]),
+            ],
+            'school_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('schools', 'id'),
+            ],
+        ]);
 
-        // Pelapor hanya melihat laporan miliknya
+        // 2. Query dasar dan relationship
+        $query = Report::query()
+            ->with([
+                'reporter',
+                'distribution.school',
+            ]);
+
+        // 3. Ownership: Pelapor hanya melihat miliknya
         if ($request->user()->role === 'pelapor') {
             $query->where(
                 'reporter_id',
@@ -32,10 +54,54 @@ class ReportController extends Controller
             );
         }
 
-        $reports = $query->get();
+        // 4. Pencarian judul atau deskripsi
+        $search = trim($filters['search'] ?? '');
 
-        return view('reports.index', compact('reports'));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // 5. Filter status laporan
+        if (!empty($filters['status'])) {
+            $query->where(
+                'status',
+                $filters['status']
+            );
+        }
+
+        // 6. Filter berdasarkan sekolah
+        if (!empty($filters['school_id'])) {
+            $query->whereHas(
+                'distribution',
+                function ($q) use ($filters) {
+                    $q->where(
+                        'school_id',
+                        $filters['school_id']
+                    );
+                }
+            );
+        }
+
+        // 7. Urutkan dan batasi 5 laporan per halaman
+        $reports = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(5)
+            ->withQueryString();
+
+        // 8. Data sekolah untuk dropdown filter
+        $schools = School::orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('reports.index', compact(
+            'reports',
+            'schools'
+        ));
     }
+
 
     // Menampilkan form laporan baru
     public function create(): View
