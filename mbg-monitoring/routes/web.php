@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportReviewController;
+use App\Http\Controllers\ReportForwardingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -61,4 +63,28 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [
         AuthController::class, 'logout'
     ])->name('logout');
+
+    
+    // Proses peninjauan oleh Pemantau Komunitas
+    Route::post('/reports/{report}/review/start', [
+        ReportReviewController::class, 'start'
+    ])->middleware('role:pemantau')
+    ->name('reports.review.start');
+
+    Route::post('/reports/{report}/reviews', [
+        ReportReviewController::class, 'store'
+    ])->middleware('role:pemantau')
+    ->name('reports.reviews.store');
+
+    // Proses penerusan oleh Koordinator Komunitas
+    Route::post('/reports/{report}/forwardings', [
+        ReportForwardingController::class, 'store'
+    ])->middleware('role:koordinator')
+    ->name('reports.forwardings.store');
+
+    Route::post('/reports/{report}/close', [
+        ReportForwardingController::class, 'close'
+    ])->middleware('role:koordinator')
+    ->name('reports.close');
+    
 });

@@ -161,8 +161,20 @@ class ReportController extends Controller
             'distribution.school',
         ]);
 
+        // Catatan internal hanya dimuat untuk petugas komunitas.
+        if (in_array(auth()->user()->role, [
+            'pemantau',
+            'koordinator',
+        ], true)) {
+            $report->load([
+                'reviews.reviewer',
+                'forwardings.coordinator',
+            ]);
+        }
+
         return view('reports.show', compact('report'));
     }
+
 
     // Menampilkan form edit
     public function edit(Report $report): View

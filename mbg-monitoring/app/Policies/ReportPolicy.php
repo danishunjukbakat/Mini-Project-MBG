@@ -55,16 +55,22 @@ class ReportPolicy
     }
 
     // Pemantau dapat melakukan peninjauan.
+    
+    // Pemantau memulai peninjauan laporan baru.
+    public function startReview(User $user, Report $report): bool
+    {
+        return $user->role === 'pemantau'
+            && $report->status === 'submitted';
+    }
+
+    // Pemantau menyimpan hasil peninjauan.
     public function review(User $user, Report $report): bool
     {
         return $user->role === 'pemantau'
-            && in_array($report->status, [
-                'submitted',
-                'under_review',
-            ], true);
+            && $report->status === 'under_review';
     }
 
-    // Koordinator mencatat penerusan.
+    // Koordinator mencatat penerusan informasi.
     public function forward(User $user, Report $report): bool
     {
         return $user->role === 'koordinator'
@@ -73,4 +79,12 @@ class ReportPolicy
                 'forwarded',
             ], true);
     }
+
+    // Koordinator menutup laporan setelah penerusan.
+    public function close(User $user, Report $report): bool
+    {
+        return $user->role === 'koordinator'
+            && $report->status === 'forwarded';
+    }
+
 }
