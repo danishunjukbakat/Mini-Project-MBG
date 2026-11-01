@@ -28,5 +28,17 @@
         @csrf
         <button type="submit">Logout</button>
     </form>
+
+    <h2>Menu Laporan</h2>
+
+    <a href="{{ route('reports.index') }}">
+        Lihat Daftar Laporan
+    </a>
+
+    @can('create', \App\Models\Report::class)
+        <a href="{{ route('reports.create') }}">
+            Buat Laporan Baru
+        </a>
+    @endcan
 </body>
 </html>

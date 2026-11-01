@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +22,9 @@ Route::middleware('guest')->group(function () {
 
 // Route yang membutuhkan login
 Route::middleware('auth')->group(function () {
+
+    Route::resource('reports', ReportController::class)
+        ->except(['destroy']);
 
     Route::get('/dashboard', function () {
         return view('dashboard');
