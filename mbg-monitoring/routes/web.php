@@ -7,7 +7,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Hanya pengguna yang belum login
+// Route untuk guest
 Route::middleware('guest')->group(function () {
     Route::get('/login', [
         AuthController::class, 'showLogin'
@@ -19,11 +19,36 @@ Route::middleware('guest')->group(function () {
       ->name('login.store');
 });
 
-// Hanya pengguna yang sudah login
+// Route yang membutuhkan login
 Route::middleware('auth')->group(function () {
+
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // Area khusus Pelapor
+    Route::get('/pelapor', function () {
+        return view('role-area', [
+            'title' => 'Area Pelapor'
+        ]);
+    })->middleware('role:pelapor')
+      ->name('pelapor.home');
+
+    // Area khusus Pemantau
+    Route::get('/pemantau', function () {
+        return view('role-area', [
+            'title' => 'Area Pemantau Komunitas'
+        ]);
+    })->middleware('role:pemantau')
+      ->name('pemantau.home');
+
+    // Area khusus Koordinator
+    Route::get('/koordinator', function () {
+        return view('role-area', [
+            'title' => 'Area Koordinator Komunitas'
+        ]);
+    })->middleware('role:koordinator')
+      ->name('koordinator.home');
 
     Route::post('/logout', [
         AuthController::class, 'logout'
