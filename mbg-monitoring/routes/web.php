@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportReviewController;
 use App\Http\Controllers\ReportForwardingController;
+use App\Http\Controllers\SchoolDistributionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -86,5 +87,11 @@ Route::middleware('auth')->group(function () {
         ReportForwardingController::class, 'close'
     ])->middleware('role:koordinator')
     ->name('reports.close');
-    
+
+    Route::get(
+        '/schools/{school}/distributions',
+        [SchoolDistributionController::class, 'index']
+    )->middleware('role:pelapor')
+    ->name('schools.distributions.index');
+
 });

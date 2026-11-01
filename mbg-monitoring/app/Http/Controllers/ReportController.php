@@ -38,34 +38,16 @@ class ReportController extends Controller
     }
 
     // Menampilkan form laporan baru
-    public function create(Request $request): View
+    public function create(): View
     {
         Gate::authorize('create', Report::class);
 
-        $schools = School::orderBy('name')->get();
+        $schools = School::orderBy('name')
+            ->get(['id', 'name']);
 
-        $selectedSchool = null;
-        $distributions = collect();
-
-        if ($request->filled('school_id')) {
-            $selectedSchool = School::find(
-                $request->query('school_id')
-            );
-
-            if ($selectedSchool) {
-                $distributions = $selectedSchool
-                    ->distributions()
-                    ->orderByDesc('distribution_date')
-                    ->get();
-            }
-        }
-
-        return view('reports.create', compact(
-            'schools',
-            'selectedSchool',
-            'distributions'
-        ));
+        return view('reports.create', compact('schools'));
     }
+
 
     // Menyimpan laporan baru
     public function store(Request $request): RedirectResponse
