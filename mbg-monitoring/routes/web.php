@@ -6,6 +6,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportReviewController;
 use App\Http\Controllers\ReportForwardingController;
 use App\Http\Controllers\SchoolDistributionController;
+use App\Http\Controllers\ReportSummaryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +26,13 @@ Route::middleware('guest')->group(function () {
 
 // Route yang membutuhkan login
 Route::middleware('auth')->group(function () {
+
+    Route::get('/reports/summary', [
+        ReportSummaryController::class, 'index'
+    ])
+    ->middleware('role:pemantau,koordinator')
+    ->name('reports.summary');
+
     Route::get(
         '/reports/{report}/evidence',
         [ReportController::class, 'downloadEvidence']
@@ -93,5 +101,5 @@ Route::middleware('auth')->group(function () {
         [SchoolDistributionController::class, 'index']
     )->middleware('role:pelapor')
     ->name('schools.distributions.index');
-
+    
 });

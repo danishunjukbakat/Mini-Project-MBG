@@ -40,5 +40,13 @@
             Buat Laporan Baru
         </a>
     @endcan
+
+    @if(in_array(auth()->user()->role, ['pemantau', 'koordinator'], true))
+    <h2>Menu Rekap</h2>
+
+    <a href="{{ route('reports.summary') }}">
+        Lihat Rekap Laporan
+    </a>
+@endif
 </body>
 </html>
